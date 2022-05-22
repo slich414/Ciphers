@@ -5,7 +5,6 @@ import java.util.ArrayList;
 
 public class CaesarCipher {
 
-    // zrobic todo i poprawic modulo na math.floormod
 
     public static boolean encryption() throws IOException {
         File plainText = new File("plain.txt");
@@ -14,7 +13,7 @@ public class CaesarCipher {
         File encryptedText = new File("crypto.txt");
         int offset = getOffsetFromFile("key.txt");
         if(!checkIfOffsetIsCorrect(getOffsetFromFile("key.txt"))){
-            throw new IllegalArgumentException("Niepoprawny klucz");
+            throw new IllegalArgumentException("Wrong key");
         }
         String result = cipher(plain, offset);
         BufferedWriter writer = new BufferedWriter(new FileWriter(encryptedText));

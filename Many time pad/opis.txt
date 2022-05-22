@@ -1,8 +1,0 @@
-Szyfrowanie zapisuje do pliku crypto znaki w formie cyfr z tablicy ascii,
-ponieważ gdy zapisałem znak 'carriage return' (13 w tablicy ascii) był on potem czytany z pliku jako znak nr 10 z tablicy ascii
-co powodowało błędy w szyfrowaniu.
-
-Jeżeli kolumny nie można rozszyfrować, to jest ona zapisywana w pliku decript.txt jako znaki '?'
-
-Przygotowanie tekstu polega na usunięciu wszystkich znaków interpunkcyjnych, cyfr oraz usunięciu tekstu przekraczającego 
-określony rozmiar (domyślnie 32) w danej linii.

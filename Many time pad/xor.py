@@ -8,7 +8,7 @@ def getByteKeyArray():
         ascii_values.append(ord(character))
     return ascii_values
 
-def przygotowanie_tekstu(size):
+def text_preparing(size):
     orig = open("orig.txt", 'r')
     plain = open("plain.txt", 'w')
     replace = [',', '.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '\'']
@@ -48,10 +48,10 @@ def kryptoanaliza_w_oparciu_o_kryptogram(size):
     for k in range(0, size):
         cts = crypto_array
         for curs1 in range(len(cts)):
-            znak = cts[curs1][k]
-            if znak > 64:
-                moj_klucz = znak ^ ord(' ')
-                key[k] = moj_klucz
+            character = cts[curs1][k]
+            if character > 64:
+                found_key = character ^ ord(' ')
+                key[k] = found_key
 
     result = [ ['?']*size for i in range(len(crypto_array))]
     for i in range(0, size):
@@ -75,35 +75,35 @@ def kryptoanaliza_w_oparciu_o_kryptogram(size):
 size = 32
 
 
-#Jezeli nie ma zadnego argumentu
+#No arguments
 if(len(sys.argv)-1 == 0):
     print("Nie podales zadnego argumentu")
     
-#Jezeli jest jeden argument
+#One argument
 elif len(sys.argv)-1 == 1:
     if sys.argv[1] == '-p':
-        przygotowanie_tekstu(size)
+        text_preparing(size)
     elif sys.argv[1] == '-e':
         encrypt(size)
-    elif sys.argv[1] == '-k':
+    elif sys.argv[1] == '-c':
         kryptoanaliza_w_oparciu_o_kryptogram(size)
         
-#Jezeli 2 argumenty
+#2 arguments
 elif len(sys.argv)-1 == 2:
     if sys.argv[1] == '-p':
-        przygotowanie_tekstu(size)
+        text_preparing(size)
         if sys.argv[2] == '-e':
             encrypt(size)
-        elif sys.argv[2] == '-k':
+        elif sys.argv[2] == '-c':
             kryptoanaliza_w_oparciu_o_kryptogram(size)
     
     if sys.argv[1] == '-e':
         encrypt(size)
-        if sys.argv[2] == '-k':
+        if sys.argv[2] == '-c':
             kryptoanaliza_w_oparciu_o_kryptogram(size)
 
 
 elif len(sys.argv)-1 == 3:
-    przygotowanie_tekstu(size)
+    text_preparing(size)
     encrypt(size)
     kryptoanaliza_w_oparciu_o_kryptogram(size)
