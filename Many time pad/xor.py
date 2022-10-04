@@ -31,7 +31,7 @@ def encrypt(size):
         crypto.write("\n")
 
 
-def kryptoanaliza_w_oparciu_o_kryptogram(size):
+def cryptoanalysis_based_on_cryptogram(size):
     size = size
     crypto_array = []
 
@@ -77,7 +77,7 @@ size = 32
 
 #No arguments
 if(len(sys.argv)-1 == 0):
-    print("Nie podales zadnego argumentu")
+    print("You didn't insert any argument")
     
 #One argument
 elif len(sys.argv)-1 == 1:
@@ -86,7 +86,7 @@ elif len(sys.argv)-1 == 1:
     elif sys.argv[1] == '-e':
         encrypt(size)
     elif sys.argv[1] == '-c':
-        kryptoanaliza_w_oparciu_o_kryptogram(size)
+        cryptoanalysis_based_on_cryptogram(size)
         
 #2 arguments
 elif len(sys.argv)-1 == 2:
@@ -95,15 +95,15 @@ elif len(sys.argv)-1 == 2:
         if sys.argv[2] == '-e':
             encrypt(size)
         elif sys.argv[2] == '-c':
-            kryptoanaliza_w_oparciu_o_kryptogram(size)
+            cryptoanalysis_based_on_cryptogram(size)
     
     if sys.argv[1] == '-e':
         encrypt(size)
         if sys.argv[2] == '-c':
-            kryptoanaliza_w_oparciu_o_kryptogram(size)
+            cryptoanalysis_based_on_cryptogram(size)
 
 
 elif len(sys.argv)-1 == 3:
     text_preparing(size)
     encrypt(size)
-    kryptoanaliza_w_oparciu_o_kryptogram(size)
+    cryptoanalysis_based_on_cryptogram(size)

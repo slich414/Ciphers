@@ -1,56 +1,41 @@
 package pl.slichota;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Objects;
 
+import static pl.slichota.Utility.*;
+
+/*
+key.txt - file with coefficient and offset. First number is coefficient, second offset
+plain.txt - file that contains text to encrypt
+crypto.txt - file with encrypted text
+extra.txt - file with few first letters of plain text
+key-found.txt - file with found key
+ */
 public class AffineCipher {
 
     //f(x) = (ax + b) mod m
-    // b - przesuniecie
-    // a - wspolczynnik
+    // b - offset
+    // a - coefficient
 
     public static void encryption() throws IOException {
 
-        int przesuniecie = getPrzesuniecieFromFile("key.txt");
-        int wspolczynnik = getWspolczynnikFromFile("key.txt");
+        int offset = getOffsetFromFile("key.txt");
+        int coefficient = getCoefficientFromFile("key.txt");
 
         // The possible values that a could be are 1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, and 25.
         // The value for b can be arbitrary as long as a does not equal 1 since this is the shift of the cipher
 
-        File file = new File("plain.txt");
-        BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
-        String plain = bufferedReader.readLine();
-        bufferedReader.close();
-
-        String result = cipher(plain, przesuniecie, wspolczynnik);
-
-        File cryptoFile = new File("crypto.txt");
-        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(cryptoFile));
-        bufferedWriter.write(result);
-        bufferedWriter.close();
-
+        String plain = readTextFromFile(new File("plain.txt"));
+        writeTextToFile(new File("crypto.txt"), cipher(plain, offset, coefficient));
 
     }
 
     public static boolean decryption() throws IOException {
 
-        int przesuniecie = getPrzesuniecieFromFile("key.txt");
-        int wspolczynnik = getWspolczynnikFromFile("key.txt");
+        int offset = getOffsetFromFile("key.txt");
+        int inverse = countInverse(getCoefficientFromFile("key.txt"));
 
-
-        int odwrotnosc = 0;
-        for(int i=0; i<=25; i++){
-            int result;
-            result = Math.floorMod((wspolczynnik*i), 26);
-            if(result == 1){
-                odwrotnosc = i;
-                break;
-            }
-        }
-        File encryptedText = new File("crypto.txt");
-        BufferedReader bufferedReader = new BufferedReader(new FileReader(encryptedText));
-        String encrypted = bufferedReader.readLine();
+        String encrypted = readTextFromFile(new File("crypto.txt"));
         StringBuilder stringBuilder = new StringBuilder();
         for (Character c : encrypted.toCharArray()){
             if (c == ' ') {
@@ -58,41 +43,31 @@ public class AffineCipher {
             }
             else{
                 if(Character.isUpperCase(c)){
-
                     int positionInAlphabet = c - 'A';
-                    int bezModulo = odwrotnosc * (positionInAlphabet - przesuniecie);
-                    int modulo = Math.floorMod(bezModulo, 26);
-                    char litera = (char) (modulo + 'A');
-                    stringBuilder.append(litera);
+                    int withoutModulo = inverse * (positionInAlphabet - offset);
+                    int modulo = Math.floorMod(withoutModulo, 26);
+                    char letter = (char) (modulo + 'A');
+                    stringBuilder.append(letter);
                 }
                 else{
-
                     int positionInAlphabet = c - 'a';
-                    int bezModulo = odwrotnosc * (positionInAlphabet - przesuniecie);
-                    int modulo = Math.floorMod(bezModulo, 26);
-                    char litera = (char) (modulo + 'a');
-                    stringBuilder.append(litera);
+                    int withoutModulo = inverse * (positionInAlphabet - offset);
+                    int modulo = Math.floorMod(withoutModulo, 26);
+                    char letter = (char) (modulo + 'a');
+                    stringBuilder.append(letter);
                 }
             }
         }
 
-        File decryptText = new File("decrypt.txt");
-        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(decryptText));
-        bufferedWriter.write(stringBuilder.toString());
-        bufferedWriter.close();
-
+        writeTextToFile(new File("decrypt.txt"), stringBuilder.toString());
         return true;
     }
 
     public static boolean cryptoAnalysisUsingHelpingText() throws IOException {
-        File encryptedText = new File("crypto.txt");
-        BufferedReader bufferedReader = new BufferedReader(new FileReader(encryptedText));
-        String encrypted = bufferedReader.readLine();
+        String encrypted = readTextFromFile(new File("crypto.txt"));
 
         int[] possibleValues = {1,3,5,7,9,11,15,17,19,21,23,25};
-        File helpingFile = new File("extra.txt");
-        BufferedReader bufferedReader2 = new BufferedReader(new FileReader(helpingFile));
-        String helpingText = bufferedReader2.readLine();
+        String helpingText = readTextFromFile(new File("extra.txt"));
 
         int possibleA;
         int possibleB;
@@ -123,17 +98,17 @@ public class AffineCipher {
         }
 
         if(foundA==0 && foundB==0){
-            throw new ArrayIndexOutOfBoundsException("Error, nie znaleziono klucza");
+            throw new ArrayIndexOutOfBoundsException("Error, cannot find key");
         }
 
 
         StringBuilder stringBuilder = new StringBuilder();
-        int odwrotnosc = 0;
+        int inverse = 0;
         for(int i=0; i<=25; i++){
             int result;
             result = Math.floorMod((foundA*i), 26);
             if(result == 1){
-                odwrotnosc = i;
+                inverse = i;
                 break;
             }
         }
@@ -145,43 +120,33 @@ public class AffineCipher {
                 if(Character.isUpperCase(c)){
 
                     int positionInAlphabet = c - 'A';
-                    int bezModulo = odwrotnosc * (positionInAlphabet - foundB);
-                    int modulo = Math.floorMod(bezModulo, 26);
-                    char litera = (char) (modulo + 'A');
-                    stringBuilder.append(litera);
+                    int withoutModulo = inverse * (positionInAlphabet - foundB);
+                    int modulo = Math.floorMod(withoutModulo, 26);
+                    char letter = (char) (modulo + 'A');
+                    stringBuilder.append(letter);
                 }
                 else{
 
                     int positionInAlphabet = c - 'a';
-                    int bezModulo = odwrotnosc * (positionInAlphabet - foundB);
-                    int modulo = Math.floorMod(bezModulo, 26);
-                    char litera = (char) (modulo + 'a');
-                    stringBuilder.append(litera);
+                    int withoutModulo = inverse * (positionInAlphabet - foundB);
+                    int modulo = Math.floorMod(withoutModulo, 26);
+                    char letter = (char) (modulo + 'a');
+                    stringBuilder.append(letter);
                 }
             }
         }
 
-        File decryptedFile = new File("decrypt.txt");
-        BufferedWriter bufferedWriterFile = new BufferedWriter(new FileWriter(decryptedFile));
-        bufferedWriterFile.write(stringBuilder.toString());
-        bufferedWriterFile.close();
+        writeTextToFile(new File("decrypt.txt"), stringBuilder.toString());
 
-        File file = new File("key-found.txt");
         String string = foundB + " " + foundA;
-        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file));
-        bufferedWriter.write(string);
-        bufferedWriter.close();
-
+        writeTextToFile(new File("key-found.txt"), string);
         return true;
     }
 
 
     public static boolean cryptoAnalysis() throws IOException {
 
-        File encryptedText = new File("crypto.txt");
-        BufferedReader bufferedReader = new BufferedReader(new FileReader(encryptedText));
-        String encrypted = bufferedReader.readLine();
-        bufferedReader.close();
+        String encrypted = readTextFromFile(new File("crypto.txt"));
 
         File file = new File("decrypt.txt");
         BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file));
@@ -200,8 +165,7 @@ public class AffineCipher {
         return true;
     }
 
-    public static String cipher(String s, int przesuniecie, int wspolczynnik){
-
+    public static String cipher(String s, int offset, int coefficient){
         StringBuilder stringBuilder = new StringBuilder();
         for(Character c : s.toCharArray()){
             if(c == ' '){
@@ -210,27 +174,24 @@ public class AffineCipher {
             else{
                 if(Character.isUpperCase(c)){
                     int positionInAlphabet = c - 'A';
-                    int after = Math.floorMod((wspolczynnik * positionInAlphabet + przesuniecie), 26);
-                    //int after = (wspolczynnik * positionInAlphabet + przesuniecie) % 26;
+                    int after = Math.floorMod((coefficient * positionInAlphabet + offset), 26);
                     char c1 = (char) ('A' + after);
                     stringBuilder.append(c1);
 
                 }
                 else{
                     int positionInAlphabet = c - 'a';
-                    int after = Math.floorMod((wspolczynnik * positionInAlphabet + przesuniecie), 26);
-                    //int after = (wspolczynnik * positionInAlphabet + przesuniecie) % 26;
+                    int after = Math.floorMod((coefficient * positionInAlphabet + offset), 26);
                     char c1 = (char) ('a' + after);
                     stringBuilder.append(c1);
                 }
             }
 
         }
-
         return stringBuilder.toString();
     }
 
-    public static int getPrzesuniecieFromFile(String fileName) throws IOException {
+    public static int getOffsetFromFile(String fileName) throws IOException {
         FileReader fileReader = new FileReader(fileName);
         BufferedReader bufferedReader = new BufferedReader(fileReader);
         String line = bufferedReader.readLine();
@@ -241,21 +202,21 @@ public class AffineCipher {
         return Integer.parseInt(str[0]);
     }
 
-    public static int getWspolczynnikFromFile(String fileName) throws IOException {
+    public static int getCoefficientFromFile(String fileName) throws IOException {
         FileReader fileReader = new FileReader(fileName);
         BufferedReader bufferedReader = new BufferedReader(fileReader);
         String line = bufferedReader.readLine();
         String[] str = line.split(" ");
-        if(!checkIfWspolczynnikIsCorrect(Integer.parseInt(str[1]))){
+        if(!checkIfCoefficientIsCorrect(Integer.parseInt(str[1]))){
             throw new IllegalArgumentException("Number isn't relatively prime to 26");
         }
         return Integer.parseInt(str[1]);
     }
 
-    public static boolean checkIfWspolczynnikIsCorrect(int wspolczynnik){
+    public static boolean checkIfCoefficientIsCorrect(int coefficient){
         int[] possibleValues = {1,3,5,7,9,11,15,17,19,21,23,25};
         for(int value : possibleValues){
-            if(value == wspolczynnik){
+            if(value == coefficient){
                 return true;
             }
         }
@@ -264,5 +225,7 @@ public class AffineCipher {
     public static boolean checkIfOffsetIsCorrect(int offset){
         return offset >= 1 && offset <= 25;
     }
+
+
 
 }
